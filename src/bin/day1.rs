@@ -42,8 +42,11 @@ fn convert_string_digit_to_digit(line: &String) -> String {
         if c.is_alphabetic() {
             word_buffer.push(c);
         } else {
+            if !word_buffer.is_empty() {
+                converted_line.extend(word_buffer.chars());
+                word_buffer.clear();
+            }
             converted_line.push(c);
-            word_buffer.clear();
         }
         if let Some(digit) = word_to_digit(&word_buffer) {
             converted_line.push(digit);
@@ -102,6 +105,7 @@ mod tests {
         assert_eq!(convert_string_digit_to_digit(&"seven34".to_string()), "734".to_string());
         assert_eq!(convert_string_digit_to_digit(&"eight45".to_string()), "845".to_string());
         assert_eq!(convert_string_digit_to_digit(&"nine56".to_string()), "956".to_string());
+        assert_eq!(convert_string_digit_to_digit(&"nin56".to_string()), "nin56".to_string());
     }
 
     #[test]
@@ -144,5 +148,19 @@ mod tests {
         assert_eq!(convert_string_digit_to_digit(&"sevenh34".to_string()), "7h34".to_string());
         assert_eq!(convert_string_digit_to_digit(&"eighti45".to_string()), "8i45".to_string());
         assert_eq!(convert_string_digit_to_digit(&"ninej56".to_string()), "9j56".to_string());
+    }
+
+    #[test]
+    fn test_convert_digits_chars_before() {
+        assert_eq!(convert_string_digit_to_digit(&"azero67".to_string()), "a067".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"oneb78".to_string()), "1b78".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"twoc89".to_string()), "2c89".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"threed90".to_string()), "3d90".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"foure01".to_string()), "4e01".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"fivef12".to_string()), "5f12".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"sixg23".to_string()), "6g23".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"sevenh34".to_string()), "7h34".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"eighti45".to_string()), "8i45".to_string());
+        // assert_eq!(convert_string_digit_to_digit(&"ninej56".to_string()), "9j56".to_string());
     }
 }
