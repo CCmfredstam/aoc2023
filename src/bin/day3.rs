@@ -29,14 +29,10 @@ fn main() {
         }
     }
 
-    // for n in numbers {
-    //     print!("{:#?},", n.get_number());
-    //     if n.next_to_symbol(&symbols) {
-    //         println!("Not next to sym: {}", n.number);
-    //     }
-    // }
-
-    let part1_total: i64 = numbers.iter().filter(|n| n.next_to_symbol(&symbols)).map(|n| n.number).sum();
+    let part1_total: i64 = numbers.iter()
+                                  .filter(|n| n.next_to_symbol(&symbols))
+                                  .map(|n| n.number)
+                                  .sum();
     println!("Part1: {}", part1_total);
 
 }
