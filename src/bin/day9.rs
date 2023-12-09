@@ -1,9 +1,7 @@
 use std::fs::read_to_string;
 
 
-fn extrapolate(dataset: String) -> i64 {
-    let datapoints: Vec<i64> = dataset.split_whitespace().map(|s|s.parse().unwrap()).collect();
-
+fn extrapolate(datapoints: Vec<i64>) -> i64 {
     let mut extrapolation = *datapoints.last().unwrap();
 
     let mut diffs: Vec<i64> = datapoints.windows(2).map(|x| x[1] - x[0]).collect();
@@ -31,7 +29,8 @@ fn main_part1() {
 
     let mut total_extrapolation: i64 = 0;
     for line in lines {
-        let next_point = extrapolate(line);
+        let datapoints: Vec<i64> = line.split_whitespace().map(|s|s.parse().unwrap()).collect();
+        let next_point = extrapolate(datapoints);
         total_extrapolation += next_point;
     }
 
@@ -42,9 +41,16 @@ fn main_part1() {
 fn main_part2() {
     // Read todays input
     let data = read_to_string("input/day9.txt").unwrap();
-    let _lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+    let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
 
-    println!("Part2: {}", 0);
+    let mut total_extrapolation: i64 = 0;
+    for line in lines {
+        let datapoints: Vec<i64> = line.split_whitespace().map(|s|s.parse().unwrap()).rev().collect();
+        let next_point = extrapolate(datapoints);
+        total_extrapolation += next_point;
+    }
+
+    println!("Part2: {}", total_extrapolation);
 
 }
 
