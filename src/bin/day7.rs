@@ -1,22 +1,5 @@
 use std::{fs::read_to_string, collections::HashMap};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-enum Card {
-    Two = 2,
-    Three = 3,
-    Four = 4,
-    Five = 5,
-    Six = 6,
-    Seven= 7,
-    Eight = 8,
-    Nine = 9,
-    Ten = 10,
-    Jack = 11,
-    Queen = 12,
-    King = 13,
-    Ace = 14,
-}
-
 #[derive(Eq, PartialEq, PartialOrd, Ord)]
 #[derive(Debug)]
 enum HandType {
@@ -35,12 +18,12 @@ struct Hand {
     cards: String,
     bid: i64,
     hand_type: HandType,
+    joker_active: bool,
+    highest_card: char,
 }
 
 
-fn determine_hand_type(hand: &str) -> HandType {
-    let card_counts = count_cards(hand);
-
+fn determine_hand_type(card_counts: HashMap<char, usize>) -> HandType {
     if card_counts.values().any(|&count| count == 5) {
         HandType::FiveOfAKind
     } else if card_counts.values().any(|&count| count == 4) {
@@ -63,8 +46,16 @@ fn determine_hand_type(hand: &str) -> HandType {
 fn count_cards(hand: &str) -> HashMap<char, usize> {
     let mut card_counts = HashMap::new();
 
+    let number_of_jokers = hand.chars().filter(|&c| c == 'J').count();
+    println!("Found {} of J in hand {:?}", number_of_jokers, hand);
     for card in hand.chars() {
         *card_counts.entry(card).or_insert(0) += 1;
+    }
+
+    for (card, count) in &mut card_counts {
+        if card.to_string() != 'J'.to_string() {
+            *count += number_of_jokers;
+        }
     }
 
     card_counts
@@ -72,54 +63,71 @@ fn count_cards(hand: &str) -> HashMap<char, usize> {
 
 impl Hand {
     fn new(hand: Vec<String>) -> Self {
-        let type_of_hand = determine_hand_type(&hand[0]);
-        Self { cards: hand[0].to_owned(), bid: hand[1].parse().unwrap(), hand_type: type_of_hand }
-    }
-
-    fn numeric_value(&self) -> i64 {
-        let mut value: i64 = 0;
-        for card in self.cards.chars() {
-            value += match card {
-                'A' => Card::Ace as i64,
-                'K' => Card::King as i64,
-                'Q' => Card::Queen as i64,
-                'J' => Card::Jack as i64,
-                'T' => Card::Ten as i64,
-                '9' => Card::Nine as i64,
-                '8' => Card::Eight as i64,
-                '7' => Card::Seven as i64,
-                '6' => Card::Six as i64,
-                '5' => Card::Five as i64,
-                '4' => Card::Four as i64,
-                '3' => Card::Three as i64,
-                '2' => Card::Two as i64,
-                _ => 0,
-            }
+        let card_count = count_cards(&hand[0]);
+        let type_of_hand = determine_hand_type(card_count.clone());
+        Self {
+            cards: hand[0].to_owned(),
+            bid: hand[1].parse().unwrap(),
+            hand_type: type_of_hand,
+            joker_active: hand[0].contains('J'),
+            highest_card: {
+                let mut highest_card = 'x';
+                let mut highest_card_num = 0;
+                for card in card_count {
+                    if card.1 > highest_card_num {
+                        highest_card = card.0;
+                        highest_card_num = card.1;
+                    }
+                }
+                highest_card
+            },
         }
-        value
+    }
+}
+
+fn card_value(card_face: char) -> i64 {
+    match card_face {
+        'A' => 14,
+        'K' => 13,
+        'Q' => 12,
+        'T' => 10,
+        'J' => 1,
+        _ => (card_face as u8 - b'0').into()
     }
 }
 
 fn sort_hands(hand_a: &Hand, hand_b: &Hand) -> std::cmp::Ordering{
     if hand_a.hand_type == hand_b.hand_type {
-        let x: std::cmp::Ordering = std::cmp::Ordering::Less;
+        let x: std::cmp::Ordering = std::cmp::Ordering::Equal;
         for (a_ch, b_ch) in hand_a.cards.chars().zip(hand_b.cards.chars()) {
             if a_ch != b_ch {
                 let a_numeric = match a_ch {
                     'A' => 14,
                     'K' => 13,
                     'Q' => 12,
-                    'J' => 11,
+                    'J' => {
+                        if hand_a.joker_active {
+                            card_value(hand_a.highest_card)
+                        } else {
+                            1
+                        }
+                    },
                     'T' => 10,
-                    _ => a_ch as u8 - '0' as u8
+                    _ => (a_ch as u8 - b'0').into()
                 };
                 let b_numeric = match b_ch {
                     'A' => 14,
                     'K' => 13,
                     'Q' => 12,
-                    'J' => 11,
+                    'J' => {
+                        if hand_a.joker_active {
+                            card_value(hand_a.highest_card)
+                        } else {
+                            1
+                        }
+                    },
                     'T' => 10,
-                    _ => b_ch as u8 - '0' as u8
+                    _ => (b_ch as u8 - b'0').into()
                 };
                 return a_numeric.cmp(&b_numeric).reverse();
             }
@@ -143,7 +151,7 @@ fn main_part1() {
     // Fetch all hands in to vector
     let mut all_hands: Vec<Hand> = vec![];
     for line in lines {
-        let h: Vec<String> = line.split(" ").map(|s| s.to_string()).collect();
+        let h: Vec<String> = line.split(' ').map(|s| s.to_string()).collect();
         all_hands.push(Hand::new(h));
     }
 
@@ -152,14 +160,14 @@ fn main_part1() {
         println!("{:?}", hand);
     }
 
-    all_hands.sort_by(|a, b| sort_hands(a,b));
+    all_hands.sort_by(sort_hands);
 
     println!("After sort");
     for hand in &all_hands {
         println!("{:?}", hand);
     }
 
-    // Calculate totalt wining
+    // Calculate totalt winning
     //  Sum(Bid * rank)   ->  (lowest rank = 1)
     let mut winnings: i64 = 0;
     for (rank, hand) in all_hands.iter().rev().enumerate() {
@@ -177,14 +185,49 @@ fn main_part2() {
     // Read todays input
     let data = read_to_string("input/day7.txt").unwrap();
     let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+    let _lines: Vec<String> = vec!["32T3K 765".to_string(),
+                                  "T55J5 684".to_string(),
+                                  "KK677 28".to_string(),
+                                  "KTJJT 220".to_string(),
+                                  "QQQJA 483".to_string()];
+
+    // Fetch all hands in to vector
+    let mut all_hands: Vec<Hand> = vec![];
+    for line in lines {
+        let h: Vec<String> = line.split(' ').map(|s| s.to_string()).collect();
+        all_hands.push(Hand::new(h));
+    }
+
+    println!("Before sort");
+    for hand in &all_hands {
+        println!("{:?}", hand);
+    }
+
+    all_hands.sort_by(sort_hands);
+
+    println!("After sort");
+    for hand in &all_hands {
+        println!("{:?}", hand);
+    }
+
+    // Calculate totalt winning
+    let mut winnings: i64 = 0;
+    for (rank, hand) in all_hands.iter().rev().enumerate() {
+        println!("Rank {:?} -> Hand {:?} -> Hand bid {:?} -> Winning {:?}", rank+1, hand.cards, hand.bid, (rank+1) as i64 * hand.bid);
+        winnings += (rank+1) as i64 * hand.bid;
+    }
 
 
-    println!("Part2: {}", 0);
+    let too_big = 246199075;
+    // "Not right": 245789439
+    println!("Part2: {}", winnings);
+    println!("Too big vs. {} = {}", too_big, winnings>=too_big);
+    println!("Part2 test expected: 5905");
 
 }
 
 fn main() {
-    main_part1();
+    //main_part1();
     main_part2();
 }
 
