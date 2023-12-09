@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-fn main() {
+fn main_part1() {
     // Read todays input
     let data = read_to_string("input/day6.txt").unwrap();
     let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
@@ -24,20 +24,36 @@ fn main() {
 
     println!("Part1: {}", multiplied_wins);
 
+}
+
+fn main_part2() {
+    // Read todays input
+    let data = read_to_string("input/day6.txt").unwrap();
+    let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+
+    // Part 1
+    let race_times: Vec<String> = lines[0].split_whitespace().skip(1).map(|s| s.to_string()).collect();
+    let best_distances: Vec<String> = lines[1].split_whitespace().skip(1).map(|s| s.to_string()).collect();
+
+    let race_time: i64 = race_times.join("").parse().unwrap();
+    let best_distance: i64 = best_distances.join("").parse().unwrap();
 
 
+    let mut total_wins = 0;
+    for held_millisec in 0..race_time {
+        let distance_covered = (race_time - held_millisec) * held_millisec;
+        if distance_covered > best_distance {
+            total_wins += 1;
+        }
+    }
 
-    // for each race time
-    //     for each held_millisec in race_time
-    //         potential_race_distance = calc_distance(race_time, held_millisec)
-    //         if potetntil_race_distance > best_distances
-    //             winning_race += 1;
+    println!("Part2: {}", total_wins);
 
+}
 
-    // fn calc_distance(race_time, held_millisec) {
-    //     time_left = race_time - held_millisec
-    //     return time_left * held_millisec
-    // }
+fn main() {
+    main_part1();
+    main_part2();
 }
 
 
