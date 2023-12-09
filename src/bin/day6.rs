@@ -5,7 +5,6 @@ fn main_part1() {
     let data = read_to_string("input/day6.txt").unwrap();
     let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
 
-    // Part 1
     let race_times: Vec<i64> = lines[0].split_whitespace().skip(1).filter_map(|s| s.parse().ok()).collect();
     let best_distances: Vec<i64> = lines[1].split_whitespace().skip(1).filter_map(|s| s.parse().ok()).collect();
 
@@ -31,7 +30,6 @@ fn main_part2() {
     let data = read_to_string("input/day6.txt").unwrap();
     let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
 
-    // Part 1
     let race_times: Vec<String> = lines[0].split_whitespace().skip(1).map(|s| s.to_string()).collect();
     let best_distances: Vec<String> = lines[1].split_whitespace().skip(1).map(|s| s.to_string()).collect();
 
