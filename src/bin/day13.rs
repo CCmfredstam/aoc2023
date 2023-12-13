@@ -10,13 +10,44 @@ impl Group {
         Self { ground: group }
     }
 
+    fn column_pattern_correct(&self, idx: usize) -> bool {
+        for col_idx in idx..self.ground[0].len() {
+            for row_idx in 0..self.ground.len() {
+                let rev_idx = idx as i64 - 1 - (col_idx as i64 - idx as i64);
+                if rev_idx < 0 {
+                    return true;
+                }
+                if self.ground[row_idx].chars().nth(col_idx) != self.ground[row_idx].chars().nth(rev_idx as usize) {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
     fn summarize_columns(&self) -> i64 {
-        0
+        let mut col_value: i64 = 0;
+
+        for col_idx in 1..self.ground[0].len() {
+            let mut col_bad = false;
+            for row_idx in 0..self.ground.len() {
+                if self.ground[row_idx].chars().nth(col_idx) != self.ground[row_idx].chars().nth(col_idx-1) {
+                    col_bad = true;
+                }
+            }
+            if !col_bad && self.column_pattern_correct(col_idx) {
+                col_value = col_idx as i64;
+                break;
+            }
+        }
+
+        col_value
     }
 
     fn row_pattern_correct(&self, idx: usize) -> bool {
         for row_idx in idx..self.ground.len() {
-            let rev_idx = (idx as i64 - 1 - (row_idx as i64 - idx as i64)) as i64;
+            let rev_idx = idx as i64 - 1 - (row_idx as i64 - idx as i64);
             if rev_idx < 0 {
                 return true;
             }
@@ -24,29 +55,27 @@ impl Group {
                 return false;
             }
         }
+
         true
     }
 
     fn summarize_rows(&self) -> i64 {
         let mut row_value: i64 = 0;
+
         for row_idx in 1..self.ground.len() {
-            if self.ground[row_idx] == self.ground[row_idx-1] {
-                if self.row_pattern_correct(row_idx) {
-                    row_value = row_idx as i64;
-                    break;
-                }
+            if self.ground[row_idx] == self.ground[row_idx-1] && self.row_pattern_correct(row_idx) {
+                row_value = row_idx as i64;
+                break;
             }
         }
-        row_value * 100
+
+        row_value * 100  // Row value should be multiplied by 100
     }
 
     fn summarize_pattern(&self) -> i64 {
-        let x = self.summarize_rows();
-        let y = self.summarize_columns();
-        dbg!("ROW:", x, "COL:", y);
-        x + y
-        //self.summarize_rows() + self.summarize_columns()
+        self.summarize_rows() + self.summarize_columns()
     }
+
 }
 
 fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Group> {
@@ -83,7 +112,6 @@ fn main_part1() {
 
     let mut total_sum = 0;
     for group in puzzle_groups {
-        println!("{group:#?}");
         total_sum += group.summarize_pattern();
     }
 
