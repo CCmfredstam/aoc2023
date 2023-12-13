@@ -26,7 +26,9 @@ fn variant_accepted(variant: &String, format: &Vec<i64>) -> bool {
 fn all_record_combinations(input: &str) -> Vec<String> {
     let mut result = Vec::new();
     let mut current = String::new();
+    //let mut memo: HashMap<String, Vec<String>> = HashMap::new();
 
+    //combinations_recursive(input, &mut current, &mut result, &mut memo);
     combinations_recursive(input, &mut current, &mut result);
 
     result
@@ -89,8 +91,13 @@ fn main_part2() {
     // Read todays input
     let data = read_to_string("input/day12.txt").unwrap();
     let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+    
+    let mut total_arrangements = 0;
+    for record in lines {
+        total_arrangements += find_arragements(record);
+    }
 
-    println!("Part2: {}", 0);
+    println!("Part2: {}", total_arrangements);
 
 }
 

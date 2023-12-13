@@ -9,6 +9,18 @@ impl Group {
     fn new(group: Vec<String>) -> Self {
         Self { ground: group }
     }
+
+    fn summarize_columns(&self) -> i64 {
+        0
+    }
+
+    fn summarize_rows(&self) -> i64 {
+        0 * 100
+    }
+
+    fn summarize_pattern(&self) -> i64 {
+        self.summarize_rows() + self.summarize_columns()
+    }
 }
 
 fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Group> {
@@ -43,19 +55,20 @@ fn main_part1() {
 
     let puzzle_groups: Vec<Group> = parse_puzzle_input(&lines);
 
+    let mut total_sum = 0;
     for group in puzzle_groups {
-
         println!("{group:#?}");
+        total_sum = group.summarize_pattern();
     }
 
-    println!("Part1: {}", 0);
+    println!("Part1: {}", total_sum);
 
 }
 
 fn main_part2() {
     // Read todays input
     let data = read_to_string("input/day13.txt").unwrap();
-    let lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+    let _lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
 
     println!("Part2: {}", 0);
 

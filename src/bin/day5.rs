@@ -36,10 +36,6 @@ impl ConvertionMap {
         self.map.push(DstSrcStep { destination: nums[0], source: nums[1], steps: nums[2] });
     }
 
-    fn len(&self) -> usize {
-        self.map.len()
-    }
-
     fn convert_location(&mut self, src: i64) -> i64 {
         let mut location = src;
         for range in &self.map {

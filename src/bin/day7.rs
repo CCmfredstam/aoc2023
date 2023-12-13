@@ -227,7 +227,7 @@ fn main_part2() {
 }
 
 fn main() {
-    //main_part1();
+    main_part1();
     main_part2();
 }
 
