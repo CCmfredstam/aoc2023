@@ -26,7 +26,26 @@ impl Group {
         true
     }
 
-    fn summarize_columns(&self) -> i64 {
+    fn summarize_columns_part1(&self) -> i64 {
+        let mut col_value: i64 = 0;
+
+        for col_idx in 1..self.ground[0].len() {
+            let mut col_bad = false;
+            for row_idx in 0..self.ground.len() {
+                if self.ground[row_idx].chars().nth(col_idx) != self.ground[row_idx].chars().nth(col_idx-1) {
+                    col_bad = true;
+                }
+            }
+            if !col_bad && self.column_pattern_correct(col_idx) {
+                col_value = col_idx as i64;
+                break;
+            }
+        }
+
+        col_value
+    }
+
+    fn summarize_columns_part2(&self) -> i64 {
         let mut col_value: i64 = 0;
 
         for col_idx in 1..self.ground[0].len() {
@@ -59,7 +78,7 @@ impl Group {
         true
     }
 
-    fn summarize_rows(&self) -> i64 {
+    fn summarize_rows_part1(&self) -> i64 {
         let mut row_value: i64 = 0;
 
         for row_idx in 1..self.ground.len() {
@@ -72,8 +91,37 @@ impl Group {
         row_value * 100  // Row value should be multiplied by 100
     }
 
-    fn summarize_pattern(&self) -> i64 {
-        self.summarize_rows() + self.summarize_columns()
+    fn summarize_rows_part2(&mut self) -> i64 {
+        let mut row_value: i64 = 0;
+
+        for row_idx in 1..self.ground.len() {
+            if self.ground[row_idx].chars().zip(self.ground[row_idx-1].chars()).filter(|(a, b)| a != b).count() == 1 {
+                dbg!("Only one char differ between:");
+                dbg!(row_idx);
+                dbg!(&self.ground[row_idx]);
+                dbg!(&self.ground[row_idx-1]);
+                self.ground[row_idx] = self.ground[row_idx-1].clone();
+                
+                dbg!("After modify");
+                dbg!(&self.ground[row_idx]);
+                dbg!(&self.ground[row_idx-1]);
+                
+            }
+            if self.ground[row_idx] == self.ground[row_idx-1] && self.row_pattern_correct(row_idx) {
+                row_value = row_idx as i64;
+                break;
+            }
+        }
+
+        row_value * 100  // Row value should be multiplied by 100
+    }
+
+    fn summarize_pattern_part1(&self) -> i64 {
+        self.summarize_rows_part1() + self.summarize_columns_part1()
+    }
+
+    fn summarize_pattern_part2(&mut self) -> i64 {
+        self.summarize_rows_part2() + self.summarize_columns_part2()
     }
 
 }
@@ -112,7 +160,7 @@ fn main_part1() {
 
     let mut total_sum = 0;
     for group in puzzle_groups {
-        total_sum += group.summarize_pattern();
+        total_sum += group.summarize_pattern_part1();
     }
 
     println!("Part1: {}", total_sum);
@@ -121,10 +169,20 @@ fn main_part1() {
 
 fn main_part2() {
     // Read todays input
-    let data = read_to_string("input/day13.txt").unwrap();
-    let _lines: Vec<String> = data.split('\n').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+    let _data = read_to_string("input/day13.txt").unwrap();
+    let _lines: Vec<String> = _data.split('\n').map(|s| s.to_string()).collect();
+    let data = read_to_string("input/test_input.txt").unwrap();
+    let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
 
-    println!("Part2: {}", 0);
+    let puzzle_groups: Vec<Group> = parse_puzzle_input(&lines);
+
+    let mut total_sum = 0;
+    for mut group in puzzle_groups {
+        dbg!(&group);
+        total_sum += group.summarize_pattern_part2();
+    }
+
+    println!("Part2: {}", total_sum);
 
 }
 
