@@ -14,16 +14,14 @@ fn parse_puzzle_input(lines: &Vec<String>) -> HashMap<(i64, i64), char> {
 
 fn main_part1() {
     // Read todays input
-    let data = read_to_string("input/day16.txt").unwrap();
+    let _data = read_to_string("input/day16.txt").unwrap();
+    let _lines: Vec<String> = _data.split('\n').map(|s| s.to_string()).collect();
+    let data = read_to_string("input/test_input.txt").unwrap();
     let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
-    let _data = read_to_string("input/test_input.txt").unwrap();
-    let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
 
     let contraption: HashMap<(i64, i64), char> = parse_puzzle_input(&lines);
     let mut light: Light = Light::new(0, -1, DirectionType::Right);
 
-    println!("Max rows = {:#?}, Max cols = {:#?}", lines.len(), lines[0].len());
-    
     let mut energized_tiles: HashSet<(i64, i64)> = Default::default();
     light.beam(&contraption, lines.len() as i64, lines[0].len() as i64, &mut energized_tiles);
     
@@ -33,16 +31,38 @@ fn main_part1() {
 
 fn main_part2() {
     // Read todays input
-    let _data = read_to_string("input/day16.txt").unwrap();
-    let _lines: Vec<String> = _data.split('\n').map(|s| s.to_string()).collect();
-    let data = read_to_string("input/test_input.txt").unwrap();
+    let data = read_to_string("input/day16.txt").unwrap();
     let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
+    let _data = read_to_string("input/test_input.txt").unwrap();
+    let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
 
-    let total_sum = 0;
-    for _line in lines {
+    let contraption: HashMap<(i64, i64), char> = parse_puzzle_input(&lines);
+    let mut light: Light = Light::new(-1, 3, DirectionType::Down);
+
+    let mut energized_tiles: HashSet<(i64, i64)> = Default::default();
+    light.beam(&contraption, lines.len() as i64, lines[0].len() as i64, &mut energized_tiles);
+
+    // Create all starting points
+    let mut lights: Vec<Light> = vec![];
+    for i in 0..lines.len() {
+        lights.push(Light::new(i as i64, -1, DirectionType::Right));
+        lights.push(Light::new(i as i64, lines[0].len() as i64, DirectionType::Left));
+    }
+    for i in 0..lines[0].len() {
+        lights.push(Light::new(-1, i as i64, DirectionType::Down));
+        lights.push(Light::new(lines.len() as i64, i as i64, DirectionType::Up));
     }
 
-    println!("Part2: {}", total_sum);
+    // Find highest energized tiles
+    let mut best_energized: Vec<i64> = vec![];
+    for mut light in lights {
+        let mut energized_tiles: HashSet<(i64, i64)> = Default::default();
+        light.beam(&contraption, lines.len() as i64, lines[0].len() as i64, &mut energized_tiles);
+        best_energized.push(energized_tiles.len() as i64);
+    }
+
+    best_energized.sort();
+    println!("Part2: {}", best_energized.last().unwrap());
 
 }
 
@@ -63,7 +83,6 @@ struct Light {
     direction: DirectionType,
     current_row: i64,
     current_column: i64,
-    visited: HashSet<(i64, i64)>,
 }
 
 impl Light {
@@ -72,7 +91,6 @@ impl Light {
             direction: dir,
             current_row: row,
             current_column: col,
-            visited: Default::default()
         }
     }
 
@@ -82,20 +100,6 @@ impl Light {
             DirectionType::Up => (-1, 0),
             DirectionType::Right => (0, 1),
             DirectionType::Left => (0, -1),
-        }
-    }
-
-    fn print_visited(&self, visited: &HashSet<(i64, i64)>, rows: i64, cols: i64) {
-        println!("Current visited:");
-        for r in 0..rows {
-            for c in 0..cols {
-                if visited.contains(&(r, c)) {
-                    print!("X");
-                } else {
-                    print!(".");
-                }
-            }
-            println!();
         }
     }
 
@@ -114,10 +118,7 @@ impl Light {
                 break 'beam_loop;
             }
 
-            //self.print_visited(visited, max_row, max_col);
-
             // Unwarp OK since we made sure we're inside bounds above
-            //println!("Fetching from contraption at r: {}, col: {}", self.current_row, self.current_column);
             match contraption.get(&(self.current_row, self.current_column)).unwrap() {
                 '/' => {
                     match self.direction {
