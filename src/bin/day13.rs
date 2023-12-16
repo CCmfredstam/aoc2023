@@ -45,17 +45,37 @@ impl Group {
         col_value
     }
 
-    fn summarize_columns_part2(&self) -> i64 {
+    fn modify_column(&mut self, idx: usize) {
+        for row_idx in 0..self.ground.len() {            
+            let tmp: String = self.ground[row_idx].chars()
+                                .enumerate()
+                                .map(|(i, c)| {
+                                    if i == idx { 
+                                        self.ground[row_idx].chars().nth(idx-1).unwrap()
+                                    } else {
+                                        c
+                                    }
+                                }).collect();
+        }
+    }
+
+    fn summarize_columns_part2(&mut self) -> i64 {
         let mut col_value: i64 = 0;
 
         for col_idx in 1..self.ground[0].len() {
-            let mut col_bad = false;
+            let mut col_cnt = 0;
             for row_idx in 0..self.ground.len() {
                 if self.ground[row_idx].chars().nth(col_idx) != self.ground[row_idx].chars().nth(col_idx-1) {
-                    col_bad = true;
+                    col_cnt += 1;
                 }
             }
-            if !col_bad && self.column_pattern_correct(col_idx) {
+            if col_cnt == 1 {
+                dbg!("One char differs in column");
+                dbg!(col_idx);
+                self.modify_column(col_idx);
+                col_cnt = 0;
+            }
+            if col_cnt == 0 && self.column_pattern_correct(col_idx) {
                 col_value = col_idx as i64;
                 break;
             }
@@ -100,7 +120,13 @@ impl Group {
                 dbg!(row_idx);
                 dbg!(&self.ground[row_idx]);
                 dbg!(&self.ground[row_idx-1]);
-                self.ground[row_idx] = self.ground[row_idx-1].clone();
+
+                let tmp = self.ground[row_idx-1].clone();
+                self.ground[row_idx-1] = self.ground[row_idx].clone();
+                if !self.row_pattern_correct(row_idx) {
+                    self.ground[row_idx-1] = tmp;
+                    self.ground[row_idx] = self.ground[row_idx-1].clone();
+                }
                 
                 dbg!("After modify");
                 dbg!(&self.ground[row_idx]);
