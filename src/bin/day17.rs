@@ -63,18 +63,18 @@ fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Vec<Edge>> {
 
 fn main_part1() {
     // Read todays input
-    let _data = read_to_string("input/day17.txt").unwrap();
-    let _lines: Vec<String> = _data.split('\n').map(|s| s.to_string()).collect();
-    let data = read_to_string("input/test_input.txt").unwrap();
+    let data = read_to_string("input/day17.txt").unwrap();
     let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
+    let _data = read_to_string("input/test_input.txt").unwrap();
+    let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
 
     let cities: Vec<Vec<Edge>> = parse_puzzle_input(&lines);
 
-    println!("{cities:#?}");
-    
+    //println!("{cities:#?}");
+
     let start_node: usize = 0;
     //let goal_node: usize = (lines.len() ) * (lines[0].len() - 1);
-    let goal_node = 168;
+    let goal_node = 19880;
     let max_consecutive_moves: usize = 3;
 
     dbg!(start_node);
@@ -120,7 +120,7 @@ fn shortest_path(adj_list: &Vec<Vec<Edge>>, start: usize, goal: usize, max_conse
 
     // Examine the frontier with lower cost nodes first (min-heap)
     while let Some(State { cost, position, consecutive_moves, prev_position }) = heap.pop() {
-        dbg!(position);
+        dbg!(position, prev_position);
         // Alternatively we could have continued to find all shortest paths
         if position == goal { return Some(cost); }
 
@@ -136,8 +136,6 @@ fn shortest_path(adj_list: &Vec<Vec<Edge>>, start: usize, goal: usize, max_conse
                 if moves == usize::MAX { continue; }
                 State { cost: cost + edge.cost, position: edge.node, consecutive_moves: moves, prev_position: position }
             };
-
-            dbg!(next.consecutive_moves);
 
             // If so, add it to the frontier and continue
             if next.cost < dist[next.position] && next.consecutive_moves <= max_consecutive_moves {
@@ -158,6 +156,10 @@ fn calc_consecutive_moves(position: usize, next_position: usize, prev_position: 
     let prev_pos = prev_position as i64;
     let side = grid_side_len as i64;
 
+    if pos == 0 && prev_pos == pos {
+        return 1;
+    }
+
 
     let mut prev_direction = DirectionType::None;
     if pos - prev_pos == 1 {
@@ -167,7 +169,7 @@ fn calc_consecutive_moves(position: usize, next_position: usize, prev_position: 
     } else if pos - prev_pos == side {
         prev_direction = DirectionType::Down;
     } else if pos - prev_pos == -side {
-        prev_direction = DirectionType::Up;        
+        prev_direction = DirectionType::Up;
     }
 
     let mut next_direction = DirectionType::None;
@@ -178,7 +180,7 @@ fn calc_consecutive_moves(position: usize, next_position: usize, prev_position: 
     } else if pos - next_pos == side {
         next_direction = DirectionType::Up;
     } else if pos - next_pos == -side {
-        next_direction = DirectionType::Down;        
+        next_direction = DirectionType::Down;
     }
 
     // Can't move backwards
