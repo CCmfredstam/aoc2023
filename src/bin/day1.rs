@@ -26,15 +26,14 @@ fn main() {
     println!("Part 2: {}", sum_calibration_part2);
 }
 
-fn get_calibration(line: &String) -> i32 {
+fn get_calibration(line: &str) -> i32 {
     let num_line: String = line.chars().filter(|c| c.is_ascii_digit()).collect();
     let first_digit = num_line.chars().next().unwrap();
     let last_digit = num_line.chars().last().unwrap();
-    let calibration = format!("{}{}", first_digit, last_digit).parse::<i32>().unwrap();
-    calibration
+    format!("{}{}", first_digit, last_digit).parse::<i32>().unwrap()
 }
 
-fn convert_string_digit_to_digit(line: &String) -> String {
+fn convert_string_digit_to_digit(line: &str) -> String {
     let mut converted_line = String::new();
     let mut word_buffer = String::new();
 
@@ -43,7 +42,7 @@ fn convert_string_digit_to_digit(line: &String) -> String {
             word_buffer.push(c);
         } else {
             if !word_buffer.is_empty() {
-                converted_line.extend(word_buffer.chars());
+                converted_line.push_str(&word_buffer);
                 word_buffer.clear();
             }
             converted_line.push(c);
@@ -57,8 +56,8 @@ fn convert_string_digit_to_digit(line: &String) -> String {
     converted_line
 }
 
-fn word_to_digit(word: &String) -> Option<char> {
-    match word.as_str() {
+fn word_to_digit(word: &str) -> Option<char> {
+    match word {
         "zero" => Some('0'),
         "one" => Some('1'),
         "two" => Some('2'),

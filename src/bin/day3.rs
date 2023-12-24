@@ -50,7 +50,7 @@ impl PartNumber {
             (row, col-1), (row, col+1),
             (row+1, col-1), (row+1, col), (row+1, col+1)
         ]);
-        Self { number: (ch as u8 - b'0') as i64, points: points }
+        Self { number: (ch as u8 - b'0') as i64, points }
     }
 
     fn extend_digit(&mut self, row: i64, col: i64, ch: char) {

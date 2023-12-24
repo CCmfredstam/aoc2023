@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, collections::{HashMap, HashSet}};
 
-fn parse_puzzle_input(lines: &Vec<String>) -> HashMap<(i64, i64), char> {
+fn parse_puzzle_input(lines: &[String]) -> HashMap<(i64, i64), char> {
     let mut input: HashMap<(i64, i64), char> = HashMap::default();
 
     for (row, line) in lines.iter().enumerate() {

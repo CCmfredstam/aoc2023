@@ -29,7 +29,7 @@ fn main() {
         let Some(game_id) = re_game_id.captures(&parts[0]) else { todo!() };
         let game_id = game_id["id"].parse::<u32>().unwrap();
         let rounds: Vec<String> = parts[1].split(';').map(|s| s.trim().to_string()).collect();
-        games.push(GameInfo { id: game_id, rounds: rounds });
+        games.push(GameInfo { id: game_id, rounds });
     }
 
     // For each round in each game, check if any cube color is more then allowed max.

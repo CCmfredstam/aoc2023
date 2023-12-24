@@ -29,7 +29,7 @@ fn parse_network_nodes(lines: Vec<String>) -> HashMap<String, LeftRightDirection
             let pos = cap.name("pos").map_or("", |s|s.as_str()).to_string();
             let left = cap.name("left").map_or("", |s|s.as_str()).to_string();
             let right = cap.name("right").map_or("", |s|s.as_str()).to_string();
-            network.insert(pos, LeftRightDirection { left: left, right: right });
+            network.insert(pos, LeftRightDirection { left, right });
         }
     }
 

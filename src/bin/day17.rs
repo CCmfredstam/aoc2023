@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, collections::{HashMap, BinaryHeap}, cmp::Ordering};
 
-fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Vec<Edge>> {
+fn parse_puzzle_input(lines: &[String]) -> Vec<Vec<Edge>> {
     let mut input: Vec<Vec<Edge>> = vec![];
 
     let mut tmp_grid: HashMap<(i64, i64), i64> = Default::default();
@@ -15,7 +15,7 @@ fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Vec<Edge>> {
 
     // Create node network/grid
     for (row, line) in lines.iter().enumerate() {
-        for (col, ch) in line.chars().enumerate() {
+        for (col, _ch) in line.chars().enumerate() {
             input.push(vec![]);
             let line_len = line.len();
             let curr_idx = row * line_len + col;
@@ -61,35 +61,41 @@ fn parse_puzzle_input(lines: &Vec<String>) -> Vec<Vec<Edge>> {
     input
 }
 
+fn read_input_data(test_data: bool) -> Vec<String> {
+    if test_data {
+        let data = read_to_string("input/test_input.txt").unwrap();
+        data.split('\n').map(|s| s.to_string()).collect()
+    } else {
+        let data = read_to_string("input/day17.txt").unwrap();
+        data.split('\n').map(|s| s.to_string()).collect()        
+    }
+}
+
 fn main_part1() {
     // Read todays input
-    let data = read_to_string("input/day17.txt").unwrap();
-    let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
-    let _data = read_to_string("input/test_input.txt").unwrap();
-    let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
+    let lines = read_input_data(true);
 
     let cities: Vec<Vec<Edge>> = parse_puzzle_input(&lines);
 
     //println!("{cities:#?}");
 
     let start_node: usize = 0;
-    //let goal_node: usize = (lines.len() ) * (lines[0].len() - 1);
-    let goal_node = 19880;
+    let goal_node: usize = lines.len() * lines[0].len() - 1;
     let max_consecutive_moves: usize = 3;
 
-    dbg!(start_node);
-    dbg!(goal_node);
+    dbg!(start_node, goal_node);
 
     let heat_loss = shortest_path(&cities, start_node, goal_node, max_consecutive_moves, lines.len());
     
     println!("Part1: {}", heat_loss.unwrap());
+    println!("Expecting 902 (test 102)");
 
 }
 
 fn main_part2() {
     // Read todays input
     let data = read_to_string("input/day17.txt").unwrap();
-    let lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
+    let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
     let _data = read_to_string("input/test_input.txt").unwrap();
     let _lines: Vec<String> = data.split('\n').map(|s| s.to_string()).collect();
 
@@ -138,7 +144,7 @@ fn shortest_path(adj_list: &Vec<Vec<Edge>>, start: usize, goal: usize, max_conse
             };
 
             // If so, add it to the frontier and continue
-            if next.cost < dist[next.position] && next.consecutive_moves <= max_consecutive_moves {
+            if next.cost < dist[next.position] && next.consecutive_moves < max_consecutive_moves {
                 heap.push(next);
                 // Relaxation, we have now found a better way
                 dist[next.position] = next.cost;
@@ -159,7 +165,6 @@ fn calc_consecutive_moves(position: usize, next_position: usize, prev_position: 
     if pos == 0 && prev_pos == pos {
         return 1;
     }
-
 
     let mut prev_direction = DirectionType::None;
     if pos - prev_pos == 1 {
@@ -192,7 +197,7 @@ fn calc_consecutive_moves(position: usize, next_position: usize, prev_position: 
         _ => {}
     }
 
-    let mut moves = 0;
+    let mut moves = 1;
     if prev_direction == next_direction {
         moves = consecutive_moves + 1;
     }

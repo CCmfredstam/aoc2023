@@ -2,10 +2,7 @@ use core::panic;
 use std::{fs::read_to_string, collections::HashMap};
 
 fn parse_puzzle_input(lines: &Vec<String>) -> Map {
-    let mut map = Map::default();
-
-    map.rows = lines.len() as i64;
-    map.columns = lines[0].len() as i64;
+    let mut map = Map { rows: lines.len() as i64, columns: lines[0].len() as i64, ..Default::default() };
 
     for (row, line) in lines.iter().enumerate() {
         for (col, sym) in line.chars().enumerate() {
@@ -26,10 +23,7 @@ fn parse_puzzle_input(lines: &Vec<String>) -> Map {
 }
 
 fn tilt_north(map: &Map) -> Map {
-    let mut north_tilted_map = Map::default();
-
-    north_tilted_map.rows = map.rows;
-    north_tilted_map.columns = map.columns;
+    let mut north_tilted_map = Map { rows: map.rows, columns: map.columns, ..Default::default() };
 
     for row in 0..map.rows {
         for col in 0..map.columns {
@@ -104,7 +98,7 @@ struct Map {
 }
 
 impl Map {
-    fn print(&self) {
+    fn _print(&self) {
         for row in 0..self.rows {
             for col in 0..self.columns {
                 print!("{}",

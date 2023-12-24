@@ -4,7 +4,7 @@ use regex::Regex;
 
 const TEST_DATA: bool = false;
 
-fn parse_puzzle_input(_lines: &Vec<String>) -> Vec<DigInstruction> {
+fn parse_puzzle_input(_lines: &[String]) -> Vec<DigInstruction> {
     let mut input: Vec<DigInstruction> = Vec::new();
 
     
@@ -26,18 +26,13 @@ fn parse_puzzle_input(_lines: &Vec<String>) -> Vec<DigInstruction> {
             _ => todo!(),
         };
 
-        let mut rgb_code = 0;
-        if let Ok(code) = u32::from_str_radix(rgb, 16) {
-            rgb_code = code;
-        } else {
-            panic!("Not a hex number: {}", rgb);
-        }
+        let rgb_code = u32::from_str_radix(rgb, 16).unwrap();
 
         input.push(DigInstruction {
             direction: dig_dir,
             meters_to_dig: met.parse().unwrap(),
-            rbg_code: RGBCode {
-                code: rgb_code,
+            _rgb_code: RGBCode {
+                _code: rgb_code,
             },
         });
     }
@@ -90,14 +85,14 @@ enum DirectionType {
 
 #[derive(Debug)]
 struct RGBCode {
-    code: u32,
+    _code: u32,
 }
 
 #[derive(Debug)]
 struct DigInstruction {
     direction: DirectionType,
     meters_to_dig: i64,
-    rbg_code: RGBCode,
+    _rgb_code: RGBCode,
 }
 
 fn dig(instructions: &Vec<DigInstruction>) -> usize {
@@ -119,7 +114,7 @@ fn dig(instructions: &Vec<DigInstruction>) -> usize {
 fn dig_between_edges(dig_site: &HashSet<(i64, i64)>) -> HashSet<(i64, i64)> {
     
     let mut digging_site: HashSet<(i64, i64)> = dig_site.clone();
-    let (minx, _maxx, _miny, maxy) = find_bounds(&dig_site);
+    let (minx, _maxx, _miny, maxy) = find_bounds(dig_site);
 
     // Flood fill
     let start_fill = find_next_dig(&digging_site, minx, 0, maxy);
@@ -141,12 +136,7 @@ fn dig_between_edges(dig_site: &HashSet<(i64, i64)>) -> HashSet<(i64, i64)> {
 }
 
 fn find_next_dig(dig_site: &HashSet<(i64, i64)>, row: i64, col: i64, max_col: i64) -> Option<i64> {
-    for c in col..=max_col {
-        if dig_site.contains(&(row, c)) {
-            return Some(c);
-        }
-    }
-    None
+    (col..=max_col).find(|&c| dig_site.contains(&(row, c)))
 }
 
 
@@ -192,7 +182,7 @@ fn dig_edges_according_to_instruction(instructions: &Vec<DigInstruction>) -> Has
 
 
 fn print_dig_site(dig_site: &HashSet<(i64, i64)>) {
-    let (minx, maxx, miny, maxy) = find_bounds(&dig_site);
+    let (minx, maxx, miny, maxy) = find_bounds(dig_site);
 
     for i in minx..=maxx {
         for j in miny..=maxy {

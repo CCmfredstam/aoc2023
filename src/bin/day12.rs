@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-fn variant_accepted(variant: &String, format: &Vec<i64>) -> bool {
+fn variant_accepted(variant: &str, format: &Vec<i64>) -> bool {
     // Split variant on dots "."
     let damaged_record_groups: Vec<String> = variant.split('.')
                                                     .map(|s|s.to_string())

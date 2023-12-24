@@ -47,7 +47,7 @@ impl Group {
 
     fn modify_column(&mut self, idx: usize) {
         for row_idx in 0..self.ground.len() {            
-            let tmp: String = self.ground[row_idx].chars()
+            let _: String = self.ground[row_idx].chars()
                                 .enumerate()
                                 .map(|(i, c)| {
                                     if i == idx { 

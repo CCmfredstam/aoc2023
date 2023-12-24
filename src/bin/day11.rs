@@ -75,7 +75,7 @@ fn expand_universe(universe: &mut Vec<Vec<char>>) {
 }
 
 /// Expands the universe. When no row or column has any galaxies, add another row/column.
-fn expand_universe_part2(universe: &mut Vec<Vec<char>>) -> (Vec<usize>, Vec<usize>) {
+fn expand_universe_part2(universe: &mut [Vec<char>]) -> (Vec<usize>, Vec<usize>) {
     // Find rows that contain only '.'
     let rows_to_insert: Vec<usize> = universe
         .iter()

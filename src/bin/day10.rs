@@ -2,7 +2,7 @@ use std::{fs::read_to_string, collections::{HashMap, HashSet}};
 
 const TEST_DATA: bool = false;
 
-fn parse_puzzle_input(lines: &Vec<String>) -> (HashMap<(i64, i64), char>, (i64, i64)) {
+fn parse_puzzle_input(lines: &[String]) -> (HashMap<(i64, i64), char>, (i64, i64)) {
     let mut input: HashMap<(i64, i64), char> = Default::default();
     let mut start_position: (i64, i64) = (0, 0);
 
@@ -70,7 +70,7 @@ fn find_farthest_point(maze: &HashMap<(i64, i64), char>, start_pos: (i64, i64)) 
 
     let outside_visited = find_outside_loop(&current_state.visited, maze);
 
-    print_visited(&current_state.visited, &maze, &outside_visited);
+    print_visited(&current_state.visited, maze, &outside_visited);
 
     (current_state.tile_count / 2, maze.len() as i64 - current_state.visited.len() as i64 - outside_visited.len() as i64)
 }
@@ -140,8 +140,7 @@ fn print_visited(visited: &HashSet<(i64, i64)>, maze: &HashMap<(i64, i64), char>
             if maze.contains_key(&(row, col)) {
                 if visited.contains(&(row, col)) {
                     print!("{}", maze.get(&(row, col)).unwrap());
-                } else
-                if outside_visited.contains(&(row, col)) {
+                } else if outside_visited.contains(&(row, col)) {
                     print!("o");
                 } else {
                     print!(".");
@@ -190,14 +189,7 @@ impl State {
     }
 
     fn change_direction(&mut self, maze: &HashMap<(i64, i64), char>) {
-        let mut tile = '^';
-        if let Some(t) = maze.get(&self.position) {
-            tile = *t;
-        } else {
-            return;  // Could not find tile in grid
-        }
-
-        match (self.direction, tile) {
+        match (self.direction, maze.get(&self.position).unwrap()) {
             (Direction::Up, '7') => self.direction = Direction::Left,
             (Direction::Up, 'F') => self.direction = Direction::Right,
             (Direction::Down, 'J') => self.direction = Direction::Left,

@@ -2,7 +2,7 @@ use std::{fs::read_to_string, collections::{HashMap, HashSet, VecDeque}};
 
 const TEST_DATA: bool = false;
 
-fn parse_puzzle_input(lines: &Vec<String>) -> (HashMap<(i64, i64), char>, (i64, i64)) {
+fn parse_puzzle_input(lines: &[String]) -> (HashMap<(i64, i64), char>, (i64, i64)) {
     let mut input: HashMap<(i64, i64), char> = Default::default();
     let mut start_position: (i64, i64) = (0, 0);
 
@@ -74,7 +74,7 @@ fn find_longest_walk_dfs(forest: HashMap<(i64, i64), char>, start_pos: (i64, i64
                 dbg!(node);
                 continue 'walking;
             }
-            if !seen.insert(node.clone()) {
+            if !seen.insert(node) {
                 continue 'walking;
             }
 
@@ -113,7 +113,7 @@ fn get_neighbors(node: (i64, i64), prev_node: (i64, i64), forest: &HashMap<(i64,
     let mut valid_neighbors = vec![];
 
     // If we find a slope, we can only go in that direction.
-    let mut slope = false;
+    let slope = false;
     // if let Some(current) = forest.get(&node) {
     //     match *current {
     //         '>' => {
