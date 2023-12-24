@@ -1,7 +1,7 @@
 use std::{fs::read_to_string, collections::HashMap};
 use regex::Regex;
 
-const TEST_DATA: bool = true;
+const TEST_DATA: bool = false;
 
 fn parse_puzzle_input(lines: &Vec<String>) -> (Workflows, Vec<Part>) {
     let mut workflows= Workflows::new();
@@ -15,19 +15,17 @@ fn parse_puzzle_input(lines: &Vec<String>) -> (Workflows, Vec<Part>) {
         }
 
         if workflow_parsing {
-            workflows.push(parse_workflow(&line));
+            let (name, flow) = parse_workflow(&line);
+            workflows.push(name, flow);
         } else {
             parts.push(parse_part(&line));
         }
     }
 
-    dbg!(&workflows);
-
     (workflows, parts)
 }
 
-
-fn parse_workflow(line: &String) -> Workflow {
+fn parse_workflow(line: &String) -> (String, Workflow) {
     let (workflow_name, workflow_rules) = line.split_once('{').unwrap();
     let workflow_name = workflow_name.to_string();
     let rules = workflow_rules.strip_suffix('}').unwrap();
@@ -45,7 +43,7 @@ fn parse_workflow(line: &String) -> Workflow {
         }
     }
 
-    Workflow { name: workflow_name, rules: workflow_rules }
+    (workflow_name, Workflow { rules: workflow_rules })
 }
 
 fn parse_action(act: &str) -> Action {
@@ -105,13 +103,14 @@ fn main_part1() {
 
     let (workflows, parts) = parse_puzzle_input(&lines);
 
+    let mut total_part_sum: i64 = 0;
     for part in parts {
-        if workflows.accept_part(part) {
-
+        if workflows.accept_part(&part) {
+            total_part_sum += part.sum();
         }
     }
 
-    println!("Part1: {}", 0);
+    println!("Part1: {}", total_part_sum);
 }
 
 fn main_part2() {
@@ -128,30 +127,66 @@ fn main() {
     main_part2();
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Condition {
     LessThan(String, i64),
     GreaterThan(String, i64),
     True,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 enum Action {
     Accept,
     Reject,
     NextWorkflow(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Rule {
     condition: Condition,
     action: Action,
 }
 
-#[derive(Debug)]
+impl Rule {
+    fn condition_ok(&self, part: &Part) -> bool {
+        if let Condition::LessThan(cat, value) = &self.condition {
+            match cat.as_str() {
+                "x" => { return part.x_value < *value; },
+                "m" => { return part.m_value < *value; },
+                "a" => { return part.a_value < *value; },
+                "s" => { return part.s_value < *value; },
+                _ => panic!("Bad category! ONLY xmas is ok!")
+            }
+        } else if let Condition::GreaterThan(cat, value) = &self.condition {
+            match cat.as_str() {
+                "x" => { return part.x_value > *value; },
+                "m" => { return part.m_value > *value; },
+                "a" => { return part.a_value > *value; },
+                "s" => { return part.s_value > *value; },
+                _ => panic!("Bad category! ONLY xmas is ok!")
+            }
+        } else {
+            return true;
+        }
+
+        false
+    }
+}
+
+#[derive(Debug, Clone)]
 struct Workflow {
-    name: String,
     rules: Vec<Rule>,
+}
+
+impl Workflow {
+    fn next_action(&self, part: &Part) -> Action {
+        for rule in &self.rules {
+            if rule.condition_ok(part) {
+                return rule.action.clone();
+            }
+        }
+        Action::Reject
+    }
 }
 
 #[derive(Debug)]
@@ -164,12 +199,25 @@ impl Workflows {
         Self { workflows: HashMap::default() }
     }
 
-    fn push(&mut self, workflow: Workflow) {
-        unimplemented!()
+    fn push(&mut self, name: String, workflow: Workflow) {
+        self.workflows.insert(name, workflow);
     }
 
-    fn accept_part(&self, part: Part) -> bool {
-        unimplemented!()
+    fn accept_part(&self, part: &Part) -> bool {
+        let mut current_workflow = "in".to_string();
+
+        while let Some(workflow) = self.workflows.get(&current_workflow) {
+            let next_action = workflow.next_action(part);
+            if next_action == Action::Accept {
+                return true;
+            } else if next_action == Action::Reject {
+                return false;
+            } else if let Action::NextWorkflow(wf) = next_action {
+                current_workflow = wf;
+            }
+        }
+
+        false
     }
 }
 
