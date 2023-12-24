@@ -15,17 +15,17 @@ fn parse_puzzle_input(lines: &Vec<String>) -> (Workflows, Vec<Part>) {
         }
 
         if workflow_parsing {
-            let (name, flow) = parse_workflow(&line);
+            let (name, flow) = parse_workflow(line);
             workflows.push(name, flow);
         } else {
-            parts.push(parse_part(&line));
+            parts.push(parse_part(line));
         }
     }
 
     (workflows, parts)
 }
 
-fn parse_workflow(line: &String) -> (String, Workflow) {
+fn parse_workflow(line: &str) -> (String, Workflow) {
     let (workflow_name, workflow_rules) = line.split_once('{').unwrap();
     let workflow_name = workflow_name.to_string();
     let rules = workflow_rules.strip_suffix('}').unwrap();
@@ -47,17 +47,13 @@ fn parse_workflow(line: &String) -> (String, Workflow) {
 }
 
 fn parse_action(act: &str) -> Action {
-    let mut action = Action::Reject;
-
     if act == "A" {
-        action = Action::Accept;
+        Action::Accept
     } else if act == "R" {
-        action = Action::Reject;
+        Action::Reject
     } else {
-        action = Action::NextWorkflow(act.to_string());
+        Action::NextWorkflow(act.to_string())
     }
-
-    action
 }
 
 fn parse_condition(cond: &str) -> Condition {
@@ -72,7 +68,7 @@ fn parse_condition(cond: &str) -> Condition {
     condition
 }
 
-fn parse_part(line: &String) -> Part {
+fn parse_part(line: &str) -> Part {
 
     let part_pattern = r"\{x=(?P<x_val>\d+),m=(?P<m_val>\d+),a=(?P<a_val>\d+),s=(?P<s_val>\d+)\}";
     let re_part = Regex::new(part_pattern).expect("re_part: Invalid regex pattern...");
@@ -117,7 +113,7 @@ fn main_part2() {
     // Read todays input
     let lines = read_input_data();
 
-    let x = parse_puzzle_input(&lines);
+    let _x = parse_puzzle_input(&lines);
 
     println!("Part2: {}", 0);
 }
@@ -151,25 +147,23 @@ impl Rule {
     fn condition_ok(&self, part: &Part) -> bool {
         if let Condition::LessThan(cat, value) = &self.condition {
             match cat.as_str() {
-                "x" => { return part.x_value < *value; },
-                "m" => { return part.m_value < *value; },
-                "a" => { return part.a_value < *value; },
-                "s" => { return part.s_value < *value; },
+                "x" => { part.x_value < *value },
+                "m" => { part.m_value < *value },
+                "a" => { part.a_value < *value },
+                "s" => { part.s_value < *value },
                 _ => panic!("Bad category! ONLY xmas is ok!")
             }
         } else if let Condition::GreaterThan(cat, value) = &self.condition {
             match cat.as_str() {
-                "x" => { return part.x_value > *value; },
-                "m" => { return part.m_value > *value; },
-                "a" => { return part.a_value > *value; },
-                "s" => { return part.s_value > *value; },
+                "x" => { part.x_value > *value },
+                "m" => { part.m_value > *value },
+                "a" => { part.a_value > *value },
+                "s" => { part.s_value > *value },
                 _ => panic!("Bad category! ONLY xmas is ok!")
             }
         } else {
             return true;
         }
-
-        false
     }
 }
 
