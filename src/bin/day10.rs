@@ -1,4 +1,4 @@
-use std::{fs::read_to_string, collections::{HashMap, HashSet, VecDeque}, sync::Arc, default};
+use std::{fs::read_to_string, collections::{HashMap, HashSet}};
 
 const TEST_DATA: bool = false;
 
@@ -37,7 +37,7 @@ fn main_part1() {
     let farthest_point = find_farthest_point(&maze, start_position);
 
 
-    println!("Part1: {}", farthest_point);
+    println!("Part1: {}", farthest_point.0);
 
 }
 
@@ -47,26 +47,110 @@ fn main_part2() {
 
     let (maze, start_position) = parse_puzzle_input(&lines);
 
-    println!("Part2: {}", 0);
+    let farthest_point = find_farthest_point(&maze, start_position);
+
+    println!("Part2: {}", farthest_point.1);
 
 }
 
 fn main() {
-    main_part1();
+    //main_part1();
     main_part2();
 }
 
 
-fn find_farthest_point(maze: &HashMap<(i64, i64), char>, start_pos: (i64, i64)) -> i64 {
+fn find_farthest_point(maze: &HashMap<(i64, i64), char>, start_pos: (i64, i64)) -> (i64, i64) {
     let mut current_state = get_first_move(maze, start_pos);
-
-    dbg!(&current_state);
 
     while current_state.position != start_pos {
         current_state.move_along(maze);
     }
 
-    current_state.tile_count / 2
+    dbg!(current_state.visited.len() / 2);
+
+    let outside_visited = find_outside_loop(&current_state.visited, maze);
+
+    print_visited(&current_state.visited, &maze, &outside_visited);
+
+    (current_state.tile_count / 2, maze.len() as i64 - current_state.visited.len() as i64 - outside_visited.len() as i64)
+}
+
+fn find_outside_loop(visited: &HashSet<(i64, i64)>, maze: &HashMap<(i64, i64), char>) -> HashSet<(i64, i64)> {
+
+    let (minx, maxx, miny, maxy) = find_bounds(&maze.keys().cloned().collect());
+    let mut outside_nodes: HashSet<(i64, i64)> = HashSet::default();
+    let mut inside_loop = false;
+    let mut stop_insertion = false;
+    let mut curr_tile = ' ';
+
+    for row in minx..=maxx {
+        for col in miny..=maxy {
+            if visited.contains(&(row, col)) {
+                match maze.get(&(row, col)).unwrap() {
+                    '|' => { inside_loop = !inside_loop; },
+                    'F' | 'L' => { curr_tile = *maze.get(&(row, col)).unwrap(); },
+                    '7' => {
+                        if curr_tile == 'L' {
+                            inside_loop = !inside_loop;
+                        }
+                    },
+                    'J' => {
+                        if curr_tile == 'F' {
+                            inside_loop = !inside_loop;
+                        }
+                    },
+                    _ => {},
+                }
+            } else if !inside_loop && !stop_insertion {
+                outside_nodes.insert((row, col));
+            }
+        }
+        inside_loop = false;
+        stop_insertion = false;
+    }
+
+    dbg!(outside_nodes.len());
+
+    outside_nodes
+}
+
+// Helper function to find the minimum and maximum x and y values in the hash set
+fn find_bounds(hash_set: &HashSet<(i64, i64)>) -> (i64, i64, i64, i64) {
+    let mut min_x = i64::MAX;
+    let mut max_x = i64::MIN;
+    let mut min_y = i64::MAX;
+    let mut max_y = i64::MIN;
+
+    for &(x, y) in hash_set.iter() {
+        if x < min_x { min_x = x; }
+        if x > max_x { max_x = x; }
+        if y < min_y { min_y = y; }
+        if y > max_y { max_y = y; }
+    }
+
+    (min_x, max_x, min_y, max_y)
+}
+
+fn print_visited(visited: &HashSet<(i64, i64)>, maze: &HashMap<(i64, i64), char>, outside_visited: &HashSet<(i64, i64)>) {
+    let (minx, maxx, miny, maxy) = find_bounds(&maze.keys().cloned().collect());
+
+    println!();
+    for row in minx..=maxx {
+        for col in miny..=maxy {
+            if maze.contains_key(&(row, col)) {
+                if visited.contains(&(row, col)) {
+                    print!("{}", maze.get(&(row, col)).unwrap());
+                } else
+                if outside_visited.contains(&(row, col)) {
+                    print!("o");
+                } else {
+                    print!(".");
+                }
+            }
+        }
+        println!();
+    }
+    println!();
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -78,11 +162,12 @@ enum Direction {
     None,
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 struct State {
     position: (i64, i64),
     direction: Direction,
     tile_count: i64,
+    visited: HashSet<(i64, i64)>,
 }
 
 impl State {
@@ -95,6 +180,8 @@ impl State {
             Direction::Right => self.position.1 += 1,
             _ => {},
         }
+
+        self.visited.insert(self.position);
 
         self.tile_count += 1;
 
@@ -126,42 +213,80 @@ impl State {
 
 fn get_first_move(maze: &HashMap<(i64, i64), char>, start_pos: (i64, i64)) -> State {
     let (x, y) = start_pos;
+    let mut visit: HashSet<(i64, i64)> = HashSet::default();
+    visit.insert(start_pos);
 
     if let Some(up) = maze.get(&(x-1, y)) {
         match up {
-            '|' => { return State{ position: (x-1,  y), direction: Direction::Up, tile_count: 1 }; },
-            '7' => { return State{ position: (x-1,  y), direction: Direction::Left, tile_count: 1  }; },
-            'F' => { return State{ position: (x-1,  y), direction: Direction::Right, tile_count: 1  }; },
+            '|' => {
+                visit.insert((x-1,  y));
+                return State{ position: (x-1,  y), direction: Direction::Up, tile_count: 1, visited: visit };
+            },
+            '7' => {
+                visit.insert((x-1,  y));
+                return State{ position: (x-1,  y), direction: Direction::Left, tile_count: 1, visited: visit };
+            },
+            'F' => {
+                visit.insert((x-1,  y));
+                return State{ position: (x-1,  y), direction: Direction::Right, tile_count: 1, visited: visit };
+            },
             _ => {}
         }
     }
 
     if let Some(down) = maze.get(&(x+1, y)) {
         match down {
-            '|' => { return State{ position: (x+1,  y), direction: Direction::Down, tile_count: 1  }; },
-            'J' => { return State{ position: (x+1,  y), direction: Direction::Left, tile_count: 1  }; },
-            'L' => { return State{ position: (x+1,  y), direction: Direction::Right, tile_count: 1  }; },
+            '|' => {
+                visit.insert((x+1,  y));
+                return State{ position: (x+1,  y), direction: Direction::Down, tile_count: 1, visited: visit };
+            },
+            'J' => {
+                visit.insert((x+1,  y));
+                return State{ position: (x+1,  y), direction: Direction::Left, tile_count: 1, visited: visit };
+            },
+            'L' => {
+                visit.insert((x+1,  y));
+                return State{ position: (x+1,  y), direction: Direction::Right, tile_count: 1, visited: visit };
+            },
             _ => {}
         }
     }
 
     if let Some(left) = maze.get(&(x, y-1)) {
         match left {
-            '-' => { return State{ position: (x,  y-1), direction: Direction::Left, tile_count: 1  }; },
-            'L' => { return State{ position: (x,  y-1), direction: Direction::Up, tile_count: 1  }; },
-            'F' => { return State{ position: (x,  y-1), direction: Direction::Down, tile_count: 1  }; },
+            '-' => {
+                visit.insert((x,  y-1));
+                return State{ position: (x,  y-1), direction: Direction::Left, tile_count: 1, visited: visit };
+            },
+            'L' => {
+                visit.insert((x,  y-1));
+                return State{ position: (x,  y-1), direction: Direction::Up, tile_count: 1, visited: visit };
+            },
+            'F' => {
+                visit.insert((x,  y-1));
+                return State{ position: (x,  y-1), direction: Direction::Down, tile_count: 1, visited: visit };
+            },
             _ => {}
         }
     }
 
     if let Some(right) = maze.get(&(x, y+1)) {
         match right {
-            '-' => { return State{ position: (x,  y+1), direction: Direction::Right, tile_count: 1  }; },
-            'J' => { return State{ position: (x,  y+1), direction: Direction::Up, tile_count: 1  }; },
-            '7' => { return State{ position: (x,  y+1), direction: Direction::Down, tile_count: 1  }; },
+            '-' => {
+                visit.insert((x,  y+1));
+                return State{ position: (x,  y+1), direction: Direction::Right, tile_count: 1, visited: visit };
+            },
+            'J' => {
+                visit.insert((x,  y+1));
+                return State{ position: (x,  y+1), direction: Direction::Up, tile_count: 1, visited: visit };
+            },
+            '7' => {
+                visit.insert((x,  y+1));
+                return State{ position: (x,  y+1), direction: Direction::Down, tile_count: 1, visited: visit };
+            },
             _ => {}
         }
     }
 
-    State { position: (0, 0), direction: Direction::None, tile_count: 1 }
+    State { position: (0, 0), direction: Direction::None, tile_count: 1, visited: HashSet::default() }
 }
