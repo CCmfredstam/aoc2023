@@ -45,12 +45,17 @@ fn main_part2() {
     // Read todays input
     let lines = read_input_data(TEST_DATA);
 
-    println!("Part2: {}", 0);
+    let (forest, start_position) = parse_puzzle_input(&lines);
+
+    let longest_walk = find_longest_walk_dfs(forest, start_position);
+
+    println!("Part2: {}", longest_walk);
+    // Correct 6526 after bruteforcing for 10h
 
 }
 
 fn main() {
-    main_part1();
+    //main_part1();
     main_part2();
 }
 
@@ -64,15 +69,29 @@ fn find_longest_walk_dfs(forest: HashMap<(i64, i64), char>, start_pos: (i64, i64
     stack.push_back((start_pos, start_pos, longest_walk, visited));
 
     'walking: while let Some((node, prev_node, length, mut seen)) = stack.pop_back() {
-        if !seen.contains(&node) {
+            if length >= 20_000 {
+                dbg!("20.000 position");
+                dbg!(node);
+                continue 'walking;
+            }
+            if !seen.insert(node.clone()) {
+                continue 'walking;
+            }
+
             if let Some(pos) = forest.get(&node) {
                 if *pos == 'E' {
+                    let prev_longest = longest_walk;
                     longest_walk = longest_walk.max(length);
+                    if prev_longest < longest_walk {
+                        dbg!("New longest walk:");
+                        dbg!(&longest_walk);
+                    }
                     continue 'walking;
                 }
             }
 
-            seen.insert(node);
+            //println!("visiting: {:#?}", node);
+            //seen.insert(node);
 
             // Get the neighbors of the current node
             let neighbors = get_neighbors(node, prev_node, &forest);
@@ -83,7 +102,6 @@ fn find_longest_walk_dfs(forest: HashMap<(i64, i64), char>, start_pos: (i64, i64
                     stack.push_back((neighbor, node, length+1, seen.clone()));
                 }
             }
-        }
     }
 
     longest_walk
@@ -96,27 +114,27 @@ fn get_neighbors(node: (i64, i64), prev_node: (i64, i64), forest: &HashMap<(i64,
 
     // If we find a slope, we can only go in that direction.
     let mut slope = false;
-    if let Some(current) = forest.get(&node) {
-        match *current {
-            '>' => {
-                valid_neighbors.push((x, y + 1));
-                slope = true;
-            },
-            'v' => {
-                valid_neighbors.push((x + 1, y));
-                slope = true;
-            },
-            '<' => {
-                valid_neighbors.push((x, y - 1));
-                slope = true;
-            },
-            '^' => {
-                valid_neighbors.push((x - 1, y));
-                slope = true;
-            },
-            _ => {},
-        }
-    }
+    // if let Some(current) = forest.get(&node) {
+    //     match *current {
+    //         '>' => {
+    //             valid_neighbors.push((x, y + 1));
+    //             slope = true;
+    //         },
+    //         'v' => {
+    //             valid_neighbors.push((x + 1, y));
+    //             slope = true;
+    //         },
+    //         '<' => {
+    //             valid_neighbors.push((x, y - 1));
+    //             slope = true;
+    //         },
+    //         '^' => {
+    //             valid_neighbors.push((x - 1, y));
+    //             slope = true;
+    //         },
+    //         _ => {},
+    //     }
+    // }
 
     // If no slope, check all paths that are not trees
     if !slope {
